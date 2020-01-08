@@ -180,17 +180,20 @@
       }
 
       function generateSums() {
-        var howMany = 1;
+        var howMany = 5;
         var container = document.querySelector("#sums");
         for (var i = 0; i < howMany; i++) {
           container.appendChild(makeAddition(generateTripletWithNoCarry));
         }
+        container.appendChild(el("br"));
         for (var i = 0; i < howMany; i++) {
           container.appendChild(makeAddition(generateAdditiveTripletWithCarry));
         }
+        container.appendChild(el("br"));
         for (var i = 0; i < howMany; i++) {
           container.appendChild(makeSubtraction(generateTripletWithNoCarry));
         }
+        container.appendChild(el("br"));
         for (var i = 0; i < howMany; i++) {
           container.appendChild(
             makeSubtraction(generateSubtractingTripletWithCarry)
