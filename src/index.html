@@ -1,0 +1,250 @@
+<html>
+  <head>
+    <script type="text/javascript">
+      var max = 100;
+      function randomInt(min, max) {
+        var range = max - min;
+        var delta = Math.round(Math.random() * range);
+        return min + delta;
+      }
+
+      function generateTripletWithNoCarry() {
+        var total = randomInt(30, max);
+        var units = total % 10;
+        var operand2 = randomInt(0, units);
+        var operand1 = total - operand2;
+        if (operand2 < 10 && operand1 > 10) {
+          operand2 += 10;
+          operand1 -= 10;
+        }
+        return {
+          operand1: operand1,
+          operand2: operand2,
+          total: total
+        };
+      }
+
+      function generateAdditiveTripletWithCarry() {
+        var total = randomInt(30, max);
+        var units = total % 10;
+        var operand2 = randomInt(units + 1, 20); // TODO: this could be better, but may be too challenging if using the upper bound of `max`
+        var operand1 = total - operand2;
+        var op2Units = operand2 % 10;
+        var op1Units = operand1 % 10;
+        var delta = op1Units - op2Units;
+        if (delta >= 0) {
+          if (delta == 0) {
+            delta += randomInt(1, 5);
+          }
+          operand1 += delta;
+          operand2 -= delta;
+        }
+        if (operand2 < 10 && operand1 > 10) {
+          operand2 += 10;
+          operand1 -= 10;
+        }
+        return {
+          operand1: operand1,
+          operand2: operand2,
+          total: total
+        };
+      }
+      function generateSubtractingTripletWithCarry() {
+        var total = randomInt(30, max);
+        var units = total % 10;
+        var operand2 = randomInt(units + 1, 20); // TODO: this could be better, but may be too challenging if using the upper bound of `max`
+        var operand1 = total - operand2;
+        var totalUnits = total % 10;
+        var operand1Units = operand1 % 10;
+        var delta = totalUnits - operand1Units;
+        console.log({
+          total,
+          operand1,
+          operand2,
+          delta,
+          totalUnits,
+          operand1Units
+        });
+        if (delta >= 0) {
+          total -= delta;
+          operand1 += delta;
+          operand2 -= (delta * 2)
+        }
+        if (operand2 < 10 && operand1 > 10) {
+          operand2 += 10;
+          operand1 -= 10;
+        }
+        return {
+          operand1: operand1,
+          operand2: operand2,
+          total: total
+        };
+      }
+
+      function el(tag, classes) {
+        var result = document.createElement(tag);
+        if (classes) {
+          if (!Array.isArray(classes)) {
+            classes = [classes];
+          }
+          classes.forEach(c => result.classList.add(c));
+        }
+        return result;
+      }
+
+      function makeNumberRow(prefix, number, columns) {
+        var tr = el("tr", "row");
+        var first = el("td");
+        first.innerText = prefix;
+        tr.appendChild(first);
+        var numbers = number.toString().split("");
+        while (numbers.length < columns) {
+          numbers.unshift("");
+        }
+        var cols = [];
+        for (var i = 0; i < columns; i++) {
+          var td = el("td");
+          td.innerText = numbers.shift();
+          tr.appendChild(td);
+        }
+        return tr;
+      }
+
+      function makeHtmlSumFor(number1, operand, number2, validator) {
+        var longest = [number1, number2].reduce((acc, cur) => {
+          var strLen = cur.toString().length;
+          return acc > strLen ? acc : strLen;
+        }, 0);
+
+        var container = el("table", "container");
+
+        var top = makeNumberRow("", number1, longest);
+        var middle = makeNumberRow(operand, number2, longest);
+
+        var bottom = el("tr", ["row", "answer"]);
+        var td = el("td");
+        bottom.appendChild(td);
+        td.colSpan = longest + 1;
+        var entry = el("input");
+        entry.type = "number";
+        td.appendChild(entry);
+        entry.addEventListener("keyup", function(e) {
+          entry.classList.remove("error");
+          if (!entry.value) {
+            return;
+          }
+          if (!validator(entry.value)) {
+            entry.classList.add("error");
+            return;
+          }
+        });
+
+        container.appendChild(top);
+        container.appendChild(middle);
+        container.appendChild(bottom);
+
+        return container;
+      }
+
+      function makeAddition(tripletGenerator) {
+        var triplet = tripletGenerator();
+        while (triplet.operand1 < 0 || triplet.operand2 < 0) {
+          triplet = tripletGenerator();
+        }
+        console.log(triplet);
+        return makeHtmlSumFor(triplet.operand1, "+", triplet.operand2, function(
+          answer
+        ) {
+          var asInt = parseInt(answer);
+          if (isNaN(asInt)) {
+            return false;
+          }
+          return asInt === triplet.total;
+        });
+      }
+
+      function makeSubtraction(tripletGenerator) {
+        var triplet = tripletGenerator();
+        while (triplet.operand1 < 0 || triplet.operand2 < 0) {
+          triplet = tripletGenerator();
+        }
+        return makeHtmlSumFor(triplet.total, "-", triplet.operand1, function(
+          answer
+        ) {
+          var asInt = parseInt(answer);
+          if (isNaN(asInt)) {
+            return false;
+          }
+          return asInt === triplet.operand2;
+        });
+      }
+
+      function generateSums() {
+        var howMany = 1;
+        var container = document.querySelector("#sums");
+        for (var i = 0; i < howMany; i++) {
+          container.appendChild(makeAddition(generateTripletWithNoCarry));
+        }
+        for (var i = 0; i < howMany; i++) {
+          container.appendChild(makeAddition(generateAdditiveTripletWithCarry));
+        }
+        for (var i = 0; i < howMany; i++) {
+          container.appendChild(makeSubtraction(generateTripletWithNoCarry));
+        }
+        for (var i = 0; i < howMany; i++) {
+          container.appendChild(
+            makeSubtraction(generateSubtractingTripletWithCarry)
+          );
+        }
+      }
+    </script>
+    <style>
+      .container {
+        background: #333;
+        border-radius: 5px;
+        border: 1px solid #444;
+        font-size: xx-large;
+        display: inline-block;
+        padding: 5px;
+        margin: 5px;
+      }
+      .row.answer {
+        border-top: 1px solid white;
+      }
+      .row span {
+        display: inline-block;
+      }
+      .error {
+        border: 1px solid red !important;
+      }
+      /* Chrome, Safari, Edge, Opera */
+      input::-webkit-outer-spin-button,
+      input::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+      }
+
+      /* Firefox */
+      input[type="number"] {
+        -moz-appearance: textfield;
+        font-size: xx-large;
+        max-width: 2em;
+        background: #111;
+        color: #eee;
+        border-radius: 5px;
+        border: 1px solid #555;
+        text-align: right;
+      }
+
+      body {
+        background: #222;
+        color: #eee;
+      }
+    </style>
+  </head>
+
+  <body onload="generateSums()">
+    <h3>Arithmetic time!</h3>
+    <div id="sums"></div>
+  </body>
+</html>
