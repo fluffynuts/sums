@@ -50,9 +50,9 @@
         };
       }
       function generateSubtractingTripletWithCarry() {
-        var total = randomInt(30, max);
+        var total = randomInt(50, max);
         var units = total % 10;
-        var operand2 = randomInt(units + 1, 20); // TODO: this could be better, but may be too challenging if using the upper bound of `max`
+        var operand2 = randomInt(units + 1, 40); // TODO: this could be better, but may be too challenging if using the upper bound of `max`
         var operand1 = total - operand2;
         var totalUnits = total % 10;
         var operand1Units = operand1 % 10;
@@ -180,7 +180,7 @@
       }
 
       function generateSums() {
-        var howMany = 5;
+        var howMany = 7;
         var container = document.querySelector("#sums");
         for (var i = 0; i < howMany; i++) {
           container.appendChild(makeAddition(generateTripletWithNoCarry));
